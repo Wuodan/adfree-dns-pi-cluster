@@ -1,0 +1,40 @@
+version: "3.3"
+services:
+  adguardhome:
+    deploy:
+      replicas: 1
+    image: wuodan/adguardhome
+    ports:
+      - 53:53/tcp
+      - 53:53/udp
+      - 80:80/tcp
+      - 3000:3000/tcp
+      - 443:443/tcp
+      - 853:853/tcp
+    volumes:
+      - type: bind
+        source: /mnt/gluster/mount/docker/adguardhome/conf
+        target: /opt/adguardhome/conf
+      - type: bind
+        source: /mnt/gluster/mount/docker/adguardhome/work
+        target: /opt/adguardhome/work
+  certs:
+    deploy:
+      replicas: 1
+    image: wuodan/docker-dehydrated-duckdns-cron
+    volumes:
+      - type: bind
+        source: /mnt/gluster/mount/docker/certs/accounts
+        target: /dehydrated/accounts
+      - type: bind
+        source: /mnt/gluster/mount/docker/certs/certs
+        target: /dehydrated/certs
+    environment:
+      DOMAIN: stefankuhn.duckdns.org
+      DUCKDNS_TOKEN_FILE: /run/secrets/duckdns-token
+      DEBUG: 1
+    secrets:
+      - duckdns-token
+secrets:
+  duckdns-token:
+    external: true
